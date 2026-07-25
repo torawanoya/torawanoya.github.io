@@ -862,15 +862,16 @@
         var starTexture = null;
         var isAppStarted = false;
 
+        // Tải văn bản thô (raw text) từ JSONBin
         async function fetchOnlineContent(binId) {
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}?meta=false`, {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/raw`, {
                     method: 'GET',
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
                 });
                 if(!res.ok) return null;
-                const data = await res.json();
-                return typeof data === 'object' && data.content ? data.content : (typeof data === 'string' ? data : JSON.stringify(data));
+                const text = await res.text();
+                return text;
             } catch(e) {
                 return null;
             }
@@ -881,11 +882,11 @@
                 const res = await fetch('https://api.jsonbin.io/v3/b', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                         'X-Master-Key': JSONBIN_API_KEY,
                         'X-Bin-Private': 'false'
                     },
-                    body: JSON.stringify({ content: textData })
+                    body: textData
                 });
                 const data = await res.json();
                 return data.metadata.id;
@@ -1376,7 +1377,8 @@
             document.getElementById('btnLoadstringContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
-                const directRawUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
+
+                const directRawUrl = `https://api.jsonbin.io/v3/b/${id}/raw`;
                 const loadstringCode = `loadstring(game:HttpGet("${directRawUrl}"))()`;
                 
                 navigator.clipboard.writeText(loadstringCode).then(() => {
