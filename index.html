@@ -579,8 +579,8 @@
             border-radius: 10px;
             overflow: hidden;
             font-family: monospace;
-            min-height: 200px;
-            resize: vertical;
+            height: 300px;
+            width: 100%;
         }
 
         .line-numbers {
@@ -592,6 +592,8 @@
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.95rem;
             line-height: 1.5;
+            overflow-y: hidden;
+            flex-shrink: 0;
         }
 
         .code-textarea {
@@ -606,7 +608,9 @@
             outline: none;
             resize: none;
             white-space: pre;
-            overflow-x: auto;
+            overflow: scroll;
+            height: 100%;
+            width: 100%;
         }
 
         .editor-actions {
@@ -1224,7 +1228,12 @@
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
             document.getElementById('page404').classList.remove('active');
 
-            if (hash.startsWith('#/content/')) {
+            if (hash.startsWith('#/raw/')) {
+                hideIntroUiImmediately();
+                const id = hash.replace('#/raw/', '');
+                const rawUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
+                window.location.href = rawUrl;
+            } else if (hash.startsWith('#/content/')) {
                 hideIntroUiImmediately();
                 const id = hash.replace('#/content/', '');
                 const contentDisplay = document.getElementById('contentDisplay');
@@ -1383,8 +1392,7 @@
             document.getElementById('btnRawContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
-                const rawUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
-                window.open(rawUrl, '_blank');
+                navigateTo(`/raw/${id}`);
             });
 
             document.getElementById('btnDownloadContent').addEventListener('click', () => {
@@ -1405,7 +1413,7 @@
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
                 
-                const loadstringCode = `loadstring(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://api.jsonbin.io/v3/b/${id}?meta=false")).content)()`;
+                const loadstringCode = `-- This loadstring was from https://torawanoya.github.io\nloadstring(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://api.jsonbin.io/v3/b/${id}?meta=false")).content)();`;
                 
                 navigator.clipboard.writeText(loadstringCode).then(() => {
                     showCustomNotification("Success", "Loadstring copied to clipboard!");
