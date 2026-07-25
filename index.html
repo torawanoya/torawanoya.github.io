@@ -796,7 +796,6 @@
         <div class="content-box" id="contentDisplay">Loading...</div>
         <div class="editor-actions">
             <button class="btn-action" id="btnCopyContent">Copy</button>
-            <button class="btn-action" id="btnRawContent">Raw</button>
             <button class="btn-action" id="btnLoadstringContent">Loadstring</button>
         </div>
     </div>
@@ -862,31 +861,39 @@
         var starTexture = null;
         var isAppStarted = false;
 
-        // Tải văn bản thô (raw text) từ JSONBin
+        // Tải văn bản dạng JSON từ JSONBin sau đó trích xuất lấy `.content`
         async function fetchOnlineContent(binId) {
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/raw`, {
+                // Đã bỏ /raw, thay bằng ?meta=false
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}?meta=false`, {
                     method: 'GET',
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
                 });
                 if(!res.ok) return null;
-                const text = await res.text();
-                return text;
+                const data = await res.json();
+                
+                // Hỗ trợ cả 2 định dạng trả về của JSONBin
+                if (data && typeof data === 'object') {
+                    if (data.content !== undefined) return data.content;
+                    if (data.record && data.record.content !== undefined) return data.record.content;
+                }
+                return JSON.stringify(data);
             } catch(e) {
                 return null;
             }
         }
 
+        // Đẩy nội dung lên JSONBin đúng chuẩn JSON v3
         async function uploadOnlineContent(textData) {
             try {
                 const res = await fetch('https://api.jsonbin.io/v3/b', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'text/plain',
+                        'Content-Type': 'application/json',
                         'X-Master-Key': JSONBIN_API_KEY,
-                        'X-Bin-Private': 'false'
+                        'X-Bin-Private': 'false' // Public bin để Roblox đọc không cần Key
                     },
-                    body: textData
+                    body: JSON.stringify({ content: textData })
                 });
                 const data = await res.json();
                 return data.metadata.id;
@@ -1195,24 +1202,7 @@
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
             document.getElementById('page404').classList.remove('active');
 
-            if (hash.startsWith('#/raw/content/')) {
-                hideIntroUiImmediately();
-                const id = hash.replace('#/raw/content/', '');
-                
-                document.open('text/plain', 'replace');
-                document.write('Loading content...');
-                document.close();
-
-                const content = await fetchOnlineContent(id);
-                
-                document.open('text/plain', 'replace');
-                if (content !== null) {
-                    document.write(content);
-                } else {
-                    document.write('404 Page Not Found');
-                }
-                document.close();
-            } else if (hash.startsWith('#/content/')) {
+            if (hash.startsWith('#/content/')) {
                 hideIntroUiImmediately();
                 const id = hash.replace('#/content/', '');
                 const contentDisplay = document.getElementById('contentDisplay');
@@ -1368,18 +1358,15 @@
                 });
             });
 
-            document.getElementById('btnRawContent').addEventListener('click', () => {
-                const hash = window.location.hash;
-                const id = hash.replace('#/content/', '');
-                window.location.hash = `#/raw/content/${id}`;
-            });
+            // Mình đã xóa nút Raw vì nó không thực sự hữu ích cho JSONBin nữa
 
+            // Cập nhật lệnh Loadstring tương thích với dữ liệu JSON của JSONBin
             document.getElementById('btnLoadstringContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
-
-                const directRawUrl = `https://api.jsonbin.io/v3/b/${id}/raw`;
-                const loadstringCode = `loadstring(game:HttpGet("${directRawUrl}"))()`;
+                
+                // Giải mã JSON ngay trong Roblox
+                const loadstringCode = `loadstring(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://api.jsonbin.io/v3/b/${id}?meta=false")).content)()`;
                 
                 navigator.clipboard.writeText(loadstringCode).then(() => {
                     alert('Loadstring copied to clipboard:\n\n' + loadstringCode);
