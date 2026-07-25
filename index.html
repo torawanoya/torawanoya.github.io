@@ -357,14 +357,14 @@
             font-weight: 900;
         }
 
-        .music-widget {
+        .custom-notification {
             position: fixed;
             bottom: 30px;
             left: 50%;
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(-50%) translateY(80px);
             z-index: 100;
             width: 320px;
-            background: rgba(15, 18, 38, 0.65);
+            background: rgba(15, 18, 38, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 20px;
@@ -377,11 +377,11 @@
             gap: 10px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 1s ease-in-out, transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.6s ease-in-out, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 
-        .music-widget::before {
+        .custom-notification::before {
             content: '';
             position: absolute;
             inset: 0;
@@ -396,8 +396,8 @@
             pointer-events: none;
         }
 
-        .music-widget.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-        .music-widget.fade-out { opacity: 0; transform: translateX(-50%) translateY(80px); pointer-events: none; }
+        .custom-notification.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+        .custom-notification.fade-out { opacity: 0; transform: translateX(-50%) translateY(80px); pointer-events: none; }
 
         .widget-content { display: flex; align-items: center; gap: 14px; }
 
@@ -452,7 +452,7 @@
             background: rgba(15, 18, 38, 0.9); transform-origin: right center;
         }
 
-        .music-widget.show .progress-bar-fill { animation: shrinkProgress 5s linear forwards; }
+        .custom-notification.show .progress-bar-fill { animation: shrinkProgress 5s linear forwards; }
         @keyframes shrinkProgress { 0% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
 
         .app-view {
@@ -647,6 +647,16 @@
             margin-bottom: 15px;
         }
 
+        .important-warning {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 12px;
+            max-width: 800px;
+            line-height: 1.4;
+            text-shadow: 0 0 10px rgba(255, 77, 77, 0.8), 0 0 20px rgba(255, 77, 77, 0.5);
+        }
+
         .page-404-container {
             position: fixed;
             inset: 0;
@@ -684,7 +694,7 @@
             .avatar-img{ width:70px; height:70px; }
             .title-container.docked{ top:100px; }
             .main-title{ letter-spacing:0.5px; }
-            .music-widget { width: 280px; bottom: 20px; }
+            .custom-notification { width: 280px; bottom: 20px; }
             .top-header-display { top: 15px; }
             .baseplate-text { font-size: 2rem; }
             .app-view { padding: 20px; }
@@ -734,17 +744,17 @@
         </div>
     </div>
 
-    <div class="music-widget" id="musicWidget">
+    <div class="custom-notification" id="customNotification">
         <div class="widget-content">
             <div class="disc-wrapper">
                 <div class="disc-inner"><div class="disc-center"></div></div>
             </div>
             <div class="music-info">
-                <span class="music-title">Now Playing...</span>
-                <span class="music-desc">Chì Líng (赤伶)</span>
+                <span class="music-title" id="notifTitle">Now Playing...</span>
+                <span class="music-desc" id="notifDesc">Chì Líng (赤伶)</span>
             </div>
         </div>
-        <div class="progress-bar-bg">
+        <div class="progress-bar-bg" id="notifProgressBar">
             <div class="progress-bar-fill" id="progressFill"></div>
         </div>
     </div>
@@ -796,8 +806,11 @@
         <div class="content-box" id="contentDisplay">Loading...</div>
         <div class="editor-actions">
             <button class="btn-action" id="btnCopyContent">Copy</button>
+            <button class="btn-action" id="btnRawContent">Raw</button>
+            <button class="btn-action" id="btnDownloadContent">Download</button>
             <button class="btn-action" id="btnLoadstringContent">Loadstring</button>
         </div>
+        <div class="important-warning">Important: If you want to use it in roblox (loadstring), click the loadstring button to copy it, dont just use Raw button</div>
     </div>
 
     <div class="page-404-container" id="page404">
@@ -827,7 +840,7 @@
             if (now - lastClickTime < 250) {
                 clickCount++;
                 if (clickCount > 8) {
-                    alert('System detected Click Spam/Bot activity. Please try again in a moment!');
+                    showCustomNotification("Security Alert", "Spam activity detected!");
                     window.location.reload();
                 }
             } else { clickCount = 0; }
@@ -861,10 +874,28 @@
         var starTexture = null;
         var isAppStarted = false;
 
-        // Tải văn bản dạng JSON từ JSONBin sau đó trích xuất lấy `.content`
+        function showCustomNotification(titleText, descText, showProgress = true) {
+            var widget = document.getElementById('customNotification');
+            var titleEl = document.getElementById('notifTitle');
+            var descEl = document.getElementById('notifDesc');
+            var progBar = document.getElementById('notifProgressBar');
+            if(!widget || !titleEl || !descEl) return;
+
+            titleEl.innerText = titleText;
+            descEl.innerText = descText;
+            if(progBar) progBar.style.display = showProgress ? 'block' : 'none';
+
+            widget.classList.remove('fade-out');
+            widget.classList.add('show');
+            
+            if(window.notifTimeout) clearTimeout(window.notifTimeout);
+            window.notifTimeout = setTimeout(function() {
+                widget.classList.add('fade-out');
+            }, 5000);
+        }
+
         async function fetchOnlineContent(binId) {
             try {
-                // Đã bỏ /raw, thay bằng ?meta=false
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}?meta=false`, {
                     method: 'GET',
                     headers: { 'X-Master-Key': JSONBIN_API_KEY }
@@ -872,7 +903,6 @@
                 if(!res.ok) return null;
                 const data = await res.json();
                 
-                // Hỗ trợ cả 2 định dạng trả về của JSONBin
                 if (data && typeof data === 'object') {
                     if (data.content !== undefined) return data.content;
                     if (data.record && data.record.content !== undefined) return data.record.content;
@@ -883,7 +913,6 @@
             }
         }
 
-        // Đẩy nội dung lên JSONBin đúng chuẩn JSON v3
         async function uploadOnlineContent(textData) {
             try {
                 const res = await fetch('https://api.jsonbin.io/v3/b', {
@@ -891,7 +920,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Master-Key': JSONBIN_API_KEY,
-                        'X-Bin-Private': 'false' // Public bin để Roblox đọc không cần Key
+                        'X-Bin-Private': 'false'
                     },
                     body: JSON.stringify({ content: textData })
                 });
@@ -953,13 +982,6 @@
                     playPromise.catch(function(e) {});
                 }
             }
-        }
-
-        function triggerMusicWidget() {
-            var widget = document.getElementById('musicWidget');
-            if(!widget) return;
-            widget.classList.add('show');
-            setTimeout(function() { widget.classList.add('fade-out'); }, 5000);
         }
 
         function initBgStars() {
@@ -1076,7 +1098,7 @@
 
         function createExplosion(texture) {
             playAudioOnExplosion();
-            triggerMusicWidget();
+            showCustomNotification("Now Playing...", "Chì Líng (赤伶)");
 
             var geo = new THREE.BufferGeometry();
             var pos = new Float32Array(BURST_PARTICLES * 3);
@@ -1323,14 +1345,14 @@
                     editor.value = text;
                     updateLines();
                 } catch (err) {
-                    alert('Failed to paste from clipboard');
+                    showCustomNotification("Clipboard Error", "Failed to paste from clipboard");
                 }
             });
 
             document.getElementById('btnUploadLink').addEventListener('click', async () => {
                 const content = editor.value;
                 if (!content.trim()) {
-                    alert('Please enter some text!');
+                    showCustomNotification("Notice", "Please enter some text!");
                     return;
                 }
 
@@ -1347,29 +1369,46 @@
                     navigateTo(`/content/${onlineBinId}`);
                     handleRoute();
                 } else {
-                    alert('Error uploading content. Please check your JSONBin API Key!');
+                    showCustomNotification("Error", "Error uploading content. Check API Key!");
                 }
             });
 
             document.getElementById('btnCopyContent').addEventListener('click', () => {
                 const text = document.getElementById('contentDisplay').innerText;
                 navigator.clipboard.writeText(text).then(() => {
-                    alert('Copied to clipboard!');
+                    showCustomNotification("Success", "Copied to clipboard!");
                 });
             });
 
-            // Mình đã xóa nút Raw vì nó không thực sự hữu ích cho JSONBin nữa
+            document.getElementById('btnRawContent').addEventListener('click', () => {
+                const hash = window.location.hash;
+                const id = hash.replace('#/content/', '');
+                const rawUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
+                window.open(rawUrl, '_blank');
+            });
 
-            // Cập nhật lệnh Loadstring tương thích với dữ liệu JSON của JSONBin
+            document.getElementById('btnDownloadContent').addEventListener('click', () => {
+                const text = document.getElementById('contentDisplay').innerText;
+                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'script.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showCustomNotification("Downloaded", "File .txt downloaded successfully!");
+            });
+
             document.getElementById('btnLoadstringContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
                 
-                // Giải mã JSON ngay trong Roblox
                 const loadstringCode = `loadstring(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://api.jsonbin.io/v3/b/${id}?meta=false")).content)()`;
                 
                 navigator.clipboard.writeText(loadstringCode).then(() => {
-                    alert('Loadstring copied to clipboard:\n\n' + loadstringCode);
+                    showCustomNotification("Success", "Loadstring copied to clipboard!");
                 }).catch(() => {
                     prompt("Copy Loadstring below:", loadstringCode);
                 });
