@@ -647,7 +647,8 @@
             word-break: break-all;
             color: #a2eeef;
             max-width: 800px;
-            min-height: 150px;
+            height: 300px;
+            overflow-y: scroll;
             margin-bottom: 15px;
         }
 
@@ -811,6 +812,7 @@
         <div class="editor-actions">
             <button class="btn-action" id="btnCopyContent">Copy</button>
             <button class="btn-action" id="btnRawContent">Raw</button>
+            <button class="btn-action" id="btnJsonContent">JSON</button>
             <button class="btn-action" id="btnDownloadContent">Download</button>
             <button class="btn-action" id="btnLoadstringContent">Loadstring</button>
         </div>
@@ -1231,8 +1233,19 @@
             if (hash.startsWith('#/raw/')) {
                 hideIntroUiImmediately();
                 const id = hash.replace('#/raw/', '');
-                const rawUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
-                window.location.href = rawUrl;
+                const content = await fetchOnlineContent(id);
+                if (content !== null) {
+                    // Sử dụng MIME type 'text/plain' để trình duyệt chỉ hiện chữ thuần túy 100%, không background, không màu mè
+                    document.open('text/plain', 'replace');
+                    document.write(content);
+                    document.close();
+                } else {
+                    document.getElementById('page404').classList.add('active');
+                }
+            } else if (hash.startsWith('#/json/')) {
+                hideIntroUiImmediately();
+                const id = hash.replace('#/json/', '');
+                window.location.href = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
             } else if (hash.startsWith('#/content/')) {
                 hideIntroUiImmediately();
                 const id = hash.replace('#/content/', '');
@@ -1393,6 +1406,12 @@
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
                 navigateTo(`/raw/${id}`);
+            });
+
+            document.getElementById('btnJsonContent').addEventListener('click', () => {
+                const hash = window.location.hash;
+                const id = hash.replace('#/content/', '');
+                navigateTo(`/json/${id}`);
             });
 
             document.getElementById('btnDownloadContent').addEventListener('click', () => {
