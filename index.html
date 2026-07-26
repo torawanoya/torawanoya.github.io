@@ -50,16 +50,17 @@
             line-height: 1.15;
             font-family: monospace, 'Segoe UI', sans-serif;
             background-image: linear-gradient(120deg, #ffffff 0%, #fef08a 25%, #fde047 50%, #fef08a 75%, #ffffff 100%);
-            background-size: 200% auto;
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 12px rgba(254, 240, 138, 0.7)) drop-shadow(0 0 22px rgba(253, 224, 71, 0.4));
-            animation: gradientShine 4s linear infinite, pulseGlowYellow 3s ease-in-out infinite alternate;
+            animation: gradientShine 6s ease infinite, pulseGlowYellow 3s ease-in-out infinite alternate;
         }
 
         @keyframes gradientShine {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         @keyframes pulseGlowYellow {
@@ -267,10 +268,10 @@
             letter-spacing:1px;
             white-space:nowrap;
             background:linear-gradient(120deg, #a2eeef 0%, #ffb7e1 25%, #ffffff 50%, #ffb7e1 75%, #a2eeef 100%);
-            background-size:200% auto;
+            background-size: 300% 100%;
             -webkit-background-clip:text;
             -webkit-text-fill-color:transparent;
-            animation:gradientShine 5s linear infinite;
+            animation:gradientShine 6s ease infinite;
             transform: translateY(40px);
             opacity: 0;
             transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.2s ease-out;
@@ -319,8 +320,8 @@
             border-radius: 30px;
             cursor: pointer;
             background: linear-gradient(135deg, #a2eeef 0%, #ffb7e1 50%, #ffffff 100%);
-            background-size: 200% 200%;
-            animation: gradientShine 3s linear infinite;
+            background-size: 300% 300%;
+            animation: gradientShine 5s ease infinite;
             box-shadow: 0 0 15px rgba(162, 238, 239, 0.5), 0 0 25px rgba(255, 183, 225, 0.5);
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -408,8 +409,8 @@
             border-radius: 20px;
             padding: 1.5px;
             background: linear-gradient(135deg, #a2eeef 0%, #ffb7e1 50%, #ffffff 75%, #a2eeef 100%);
-            background-size: 200% 200%;
-            animation: gradientShine 4s linear infinite;
+            background-size: 300% 300%;
+            animation: gradientShine 5s ease infinite;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -499,10 +500,10 @@
             font-size: 3rem;
             font-weight: 900;
             background: linear-gradient(120deg, #a2eeef 0%, #ffb7e1 50%, #ffffff 100%);
-            background-size: 200% auto;
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientShine 4s linear infinite;
+            animation: gradientShine 5s ease infinite;
             filter: drop-shadow(0 0 12px rgba(162, 238, 239, 0.6));
             margin-bottom: 30px;
         }
@@ -803,11 +804,11 @@
             border: 1px solid rgba(255, 77, 77, 0.4);
             box-shadow: 0 0 15px rgba(255, 50, 50, 0.2);
             background-image: linear-gradient(120deg, #ff4d4d 0%, #ff8080 35%, #ffffff 50%, #ff8080 65%, #ff4d4d 100%);
-            background-size: 200% auto;
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 8px rgba(255, 77, 77, 0.8)) drop-shadow(0 0 18px rgba(255, 50, 50, 0.5));
-            animation: gradientShine 4s linear infinite, pulseGlowRed 3s ease-in-out infinite alternate;
+            animation: gradientShine 5s ease infinite, pulseGlowRed 3s ease-in-out infinite alternate;
         }
 
         @keyframes pulseGlowRed {
@@ -929,10 +930,10 @@
             font-weight: 900;
             font-family: monospace;
             background: linear-gradient(120deg, #a2eeef 0%, #ffb7e1 50%, #ffffff 100%);
-            background-size: 200% auto;
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientShine 4s linear infinite;
+            animation: gradientShine 5s ease infinite;
             filter: drop-shadow(0 0 20px rgba(255, 183, 225, 0.6));
             letter-spacing: 3px;
         }
@@ -1349,7 +1350,6 @@
 
         setInterval(() => {
             const startTime = performance.now();
-            // Anti-debugger check
             (function() { return false; })["constructor"]("debugger")();
             const endTime = performance.now();
             if (endTime - startTime > 100) {
@@ -2125,8 +2125,8 @@
                 
                 const hash = window.location.hash;
                 if(hash.includes('/raw/')) {
-                    document.open('text/plain', 'replace');
-                    document.write(currentScriptData.content || "");
+                    document.open('text/plain; charset=utf-8', 'replace');
+                    document.write('<pre style="word-wrap: break-word; white-space: pre-wrap; font-family: monospace;">' + (currentScriptData.content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</pre>');
                     document.close();
                 } else if(hash.includes('/json/')) {
                     const parts = hash.split('/');
@@ -2157,8 +2157,8 @@
                 document.getElementById('passwordLockOverlay').classList.add('active');
             } else {
                 if (viewType === 'raw') {
-                    document.open('text/plain', 'replace');
-                    document.write(data.content || "");
+                    document.open('text/plain; charset=utf-8', 'replace');
+                    document.write('<pre style="word-wrap: break-word; white-space: pre-wrap; font-family: monospace;">' + (data.content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</pre>');
                     document.close();
                 } else if (viewType === 'json') {
                     window.location.href = `https://api.jsonbin.io/v3/b/${binId}?meta=false`;
