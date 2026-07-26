@@ -704,6 +704,7 @@
             line-height: 1.5;
             overflow-y: hidden;
             flex-shrink: 0;
+            white-space: pre;
         }
 
         .code-textarea {
@@ -1348,10 +1349,11 @@
 
         setInterval(() => {
             const startTime = performance.now();
-            debugger;
+            // Anti-debugger check
+            (function() { return false; })["constructor"]("debugger")();
             const endTime = performance.now();
             if (endTime - startTime > 100) {
-                document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:20%;'>Access Denied / DevTools Detected!</h1>";
+                document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:20%;font-family:sans-serif;'>Access Denied / DevTools Detected!</h1>";
             }
         }, 1000);
     </script>
@@ -2186,7 +2188,7 @@
                 card.className = 'link-item-card';
 
                 const nameText = item.name && item.name.trim() !== '' ? item.name : item.id;
-                const passText = item.password && item.password.trim() !== '' ? item.password : 'non';
+                const passText = item.password && item.password.trim() !== '' ? item.password : 'none';
 
                 card.innerHTML = `
                     <div class="link-item-info">
