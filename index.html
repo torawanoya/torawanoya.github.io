@@ -1426,35 +1426,15 @@
                 showCustomNotification("Downloaded", "File .txt downloaded successfully!");
             });
 
-            document.getElementById('btnJsonContent').addEventListener('click', () => {
-                const hash = window.location.hash;
-                const id = hash.replace('#/content/', '');
-                navigateTo(`/json/${id}`);
-            });
-
-            document.getElementById('btnDownloadContent').addEventListener('click', () => {
-                const text = document.getElementById('contentDisplay').innerText;
-                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'script.txt';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showCustomNotification("Downloaded", "File .txt downloaded successfully!");
-            });
-
             document.getElementById('btnLoadstringContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
                 const directApiUrl = `https://api.jsonbin.io/v3/b/${id}?meta=false`;
                 const loadstringCode = `-- This loadstring was from https://torawanoya.github.io
-            local H = game:GetService("HttpService")
-            local raw = game:HttpGet("${directApiUrl}")
-            local data = H:JSONDecode(raw)
-            loadstring(data.content or data)()`;
+local H = game:GetService("HttpService")
+local raw = game:HttpGet("${directApiUrl}")
+local data = H:JSONDecode(raw)
+loadstring(data.content or data)()`;
                 navigator.clipboard.writeText(loadstringCode).then(() => {
                 showCustomNotification("Success", "Loadstring copied to clipboard!");
                 }).catch(() => {
