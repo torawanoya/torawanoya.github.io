@@ -816,7 +816,6 @@
             <button class="btn-action" id="btnDownloadContent">Download</button>
             <button class="btn-action" id="btnLoadstringContent">Loadstring</button>
         </div>
-        <div class="important-warning">Important: If you want to use it in roblox (loadstring), click the loadstring button to copy it, dont just use Raw button</div>
     </div>
 
     <div class="page-404-container" id="page404">
@@ -1235,7 +1234,6 @@
                 const id = hash.replace('#/raw/', '');
                 const content = await fetchOnlineContent(id);
                 if (content !== null) {
-                    // Sử dụng MIME type 'text/plain' để trình duyệt chỉ hiện chữ thuần túy 100%, không background, không màu mè
                     document.open('text/plain', 'replace');
                     document.write(content);
                     document.close();
@@ -1431,8 +1429,9 @@
             document.getElementById('btnLoadstringContent').addEventListener('click', () => {
                 const hash = window.location.hash;
                 const id = hash.replace('#/content/', '');
-                
-                const loadstringCode = `-- This loadstring was from https://torawanoya.github.io\nloadstring(game:GetService("HttpService"):JSONDecode(game:HttpGet("https://api.jsonbin.io/v3/b/${id}?meta=false")).content)();`;
+
+                const rawUrl = `${window.location.origin}${window.location.pathname}#/raw/${id}`;
+                const loadstringCode = `-- This loadstring was from https://torawanoya.github.io\nloadstring(game:HttpGet("${rawUrl}"))();`;
                 
                 navigator.clipboard.writeText(loadstringCode).then(() => {
                     showCustomNotification("Success", "Loadstring copied to clipboard!");
